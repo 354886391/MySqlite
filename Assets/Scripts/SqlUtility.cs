@@ -8,9 +8,9 @@ using UnityEngine;
 public static class SqlUtility
 {
 
-    private const string dbname = "KingKong";
+    private const string dbname = "BookData.db";
 
-    private static string filePath
+    private static string DirectoryPath
     {
         get
         {
@@ -21,7 +21,7 @@ public static class SqlUtility
     {
         get
         {
-            return "DATA SOURCE = " + Path.Combine(filePath, dbname) + "; Version = 3;";
+            return "DATA SOURCE = " + Path.Combine(DirectoryPath, dbname) + "; Version = 3;";
         }
     }
 
@@ -61,27 +61,27 @@ public static class SqlUtility
 
     public static bool HasDb()
     {
-        return File.Exists(Path.Combine(filePath, dbname));
+        return File.Exists(Path.Combine(DirectoryPath, dbname));
     }
 
     public static string CreateTableText<T>(string tablename)
     {
-        var length = RefUtility.GetPropertiesLength<T>();
+        var length = RefUtility<T>.GetPropertiesLength();
         StringBuilder builder = new StringBuilder(string.Format(@"CREATE TABLE IF NOT EXISTS {0} (", tablename));
         for (int i = 0; i < length; i++)
         {
-            builder.AppendFormat("{0} {1}{2}", RefUtility.GetPropertyName(i), RefUtility.GetSqliteType(i), i < length - 1 ? ", " : ")");
+            builder.AppendFormat("{0} {1}{2}", RefUtility<T>.GetPropertyName(i), GetSqliteType(RefUtility<T>.GetPropertyType(i)), i < length - 1 ? ", " : ")");
         }
         return builder.ToString();
     }
 
     public static string InsertTableText<T>(string tablename, T t)
     {
-        var length = RefUtility.GetPropertiesLength<T>();
+        var length = RefUtility<T>.GetPropertiesLength();
         var builder = new StringBuilder(string.Format(@"INSERT INTO {0} VALUES (", tablename));
         for (var i = 0; i < length; i++)
         {
-            builder.AppendFormat("\'{0}\'{1}", RefUtility.GetPropertyValue(i, t), i < length - 1 ? ", " : ")");
+            builder.AppendFormat("\'{0}\'{1}", RefUtility<T>.GetPropertyValue(i, t), i < length - 1 ? ", " : ")");
         }
         return builder.ToString();
     }
@@ -93,11 +93,11 @@ public static class SqlUtility
 
     public static string SelectTableText<T>(string tablename, int index)
     {
-        var length = RefUtility.GetPropertiesLength<T>();
+        var length = RefUtility<T>.GetPropertiesLength();
         StringBuilder builder = new StringBuilder(@"SELECT ");
         for (int i = 0; i < length; i++)
         {
-            builder.AppendFormat("{0}{1}", RefUtility.GetPropertyName(i), i < length - 1 ? ", " : " ");
+            builder.AppendFormat("{0}{1}", RefUtility<T>.GetPropertyName(i), i < length - 1 ? ", " : " ");
         }
         builder.AppendFormat("FROM {0} LIMIT 1 OFFSET {1}", tablename, index);
         return builder.ToString();
@@ -105,11 +105,11 @@ public static class SqlUtility
 
     public static string UpdateTableText<T>(string tablename, T t, int index)
     {
-        var length = RefUtility.GetPropertiesLength<T>();
+        var length = RefUtility<T>.GetPropertiesLength();
         var builder = new StringBuilder(string.Format(@"UPDATE {0} SET ", tablename));
         for (var i = 0; i < length; i++)
         {
-            builder.AppendFormat("{0}=\'{1}\'{2}", RefUtility.GetPropertyName(i), RefUtility.GetPropertyValue(i, t), i < length - 1 ? ", " : " WHERE ROWID=" + (index + 1));
+            builder.AppendFormat("{0}=\'{1}\'{2}", RefUtility<T>.GetPropertyName(i), RefUtility<T>.GetPropertyValue(i, t), i < length - 1 ? ", " : " WHERE ROWID=" + (index + 1));
         }
         return builder.ToString();
     }
@@ -156,7 +156,7 @@ public static class SqlUtility
                     int count = sqlReader.FieldCount;
                     for (int i = 0; i < count; i++)
                     {
-                        RefUtility.SetPropertiesValue(i, t, sqlReader.GetValue(i));
+                        RefUtility<T>.SetPropertyValue(i, t, sqlReader.GetValue(i));
                         //Debug.LogFormat("{0} Value: {1}", i, sqlReader.GetValue(i));
                     }
                 }
@@ -218,13 +218,41 @@ public static class SqlUtility
         }
     }
 
+    public static string GetSqliteType(Type type)
+    {
+        switch (type.ToString())
+        {
+            case "System.SByte":
+            case "System.Int16":
+            case "System.Int32":
+            case "System.Int64":
+            case "System.Byte":
+            case "System.UInt16":
+            case "System.UInt32":
+            case "System.UInt64":
+            case "System.Boolean":
+                return "INTEGER";
+            case "System.Single":
+            case "System.Double":
+            case "System.Decimal":
+                return "REAL";
+            case "System.Char":
+            case "System.String":
+            case "System.TimeSpan":
+            case "System.DateTime":
+                return "TEXT";
+            default:
+                return "BLOB";
+        }
+    }
+
     public static void PrintT<T>(T t)
     {
         var builder = new StringBuilder();
-        var length = RefUtility.GetPropertiesLength<T>();
+        var length = RefUtility<T>.GetPropertiesLength();
         for (int i = 0; i < length; i++)
         {
-            builder.AppendFormat("{0} {1}{2}", RefUtility.GetPropertyName(i), RefUtility.GetPropertyValue(i, t), i < length - 1 ? ", " : ";");
+            builder.AppendFormat("{0} {1}{2}", RefUtility<T>.GetPropertyName(i), RefUtility<T>.GetPropertyValue(i, t), i < length - 1 ? ", " : ";");
         }
         Debug.Log(builder.ToString());
     }

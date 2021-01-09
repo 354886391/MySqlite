@@ -1,77 +1,51 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 
-public static class RefUtility
+public static class RefUtility<T>
 {
-    private static PropertyInfo[] _properties;
 
-    public static PropertyInfo[] GetProperties()
-    {
-        return _properties;
-    }
+    private static PropertyInfo[] properties;
 
-    public static void SetProperties<T>()
+    public static int GetPropertiesLength()
     {
-        _properties = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-    }
-
-    public static int GetPropertiesLength<T>()
-    {
-        if (_properties == null)
-            SetProperties<T>();
-        return _properties.Length;
-    }
-
-    public static string GetPropertyName(int index)
-    {
-        return _properties[index].Name;
+        return Properties.Length;
     }
 
     public static Type GetPropertyType(int index)
     {
-        return _properties[index].PropertyType;
+        return Properties[index].PropertyType;
     }
 
-    public static string GetPropertyTypeName(int index)
+    public static string GetPropertyName(int index)
     {
-        return _properties[index].PropertyType.ToString().Replace("System.", string.Empty);
+        return Properties[index].Name;
     }
 
-    public static object GetPropertyValue<T>(int index, T t)
+    public static object GetPropertyValue(int index, T t)
     {
-        return _properties[index].GetValue(t);
+        return Properties[index].GetValue(t);
     }
 
-    public static void SetPropertiesValue<T>(int index, T t, object value)
+    public static void SetPropertyValue(int index, T t, object value)
     {
-        _properties[index].SetValue(t, Convert.ChangeType(value, GetPropertyType(index)));
+        Properties[index].SetValue(t, Convert.ChangeType(value, GetPropertyType(index)));
     }
 
-    public static string GetSqliteType(int index)
+    public static PropertyInfo[] Properties
     {
-        var str = string.Empty;
-        var type = GetPropertyTypeName(index);
-        switch (type)
+        get
         {
-            case "Byte":
-            case "Int16":
-            case "Int32":
-            case "Int64":
-                str = "INTEGER"; break;
-            case "Single":
-            case "Double":
-                str = "REAL"; break;
-            case "Boolean":
-            case "DateTime":
-            case "Decimal":
-                str = "NUMERIC"; break;
-            case "Char":
-            case "String":
-                str = "TEXT"; break;
-            default:
-                str = "BLOB"; break;
+            if (properties == null)
+            {
+                properties = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            }
+            return properties;
         }
-        return str;
+        set
+        {
+            properties = value;
+        }
     }
 }
 

@@ -1,13 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Test : MonoBehaviour
 {
 
     private void Start()
     {
-        Book book = new Book() { Guid = "ISBN9787111075752", Name = "设计模式-可复用面向对象软件的基础", Price = 35.89m, Press = "机械工业出版社", Classify = (byte)BookType.Education, IsEBook = false };
+        Book book = new Book();
+        //Book book = new Book() { Guid = "ISBN9787111075752", Name = "设计模式-可复用面向对象软件的基础", Price = 35.89m, Press = "机械工业出版社", Classify = new int[] { 1, 2, 3 }, IsEBook = false };
         Debug.Log(SqlUtility.CreateTableText<Book>("data"));
         Debug.Log(SqlUtility.InsertTableText<Book>("data", book));
         Debug.Log(SqlUtility.SelectTableText("data", 0));
