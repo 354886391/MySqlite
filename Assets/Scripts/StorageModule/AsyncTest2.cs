@@ -21,8 +21,8 @@ public class AsyncTest2 : MonoBehaviour
         await Task.Run(() =>
         {
             Debug.Log("<color=blue> before Delay </color>");
-            System.Threading.Thread.Sleep(3000);
-            //await Task.Delay(3000);
+            //System.Threading.Thread.Sleep(3000);
+            Task.Delay(3000).Wait();
             Debug.Log("<color=blue> after Delay </color>");
         });
         Debug.Log("<color=yellow> after Task </color>");
